@@ -20,9 +20,6 @@ class Snake {
         this.gameOverSound = document.getElementById('gameOverSound');
         this.bgMusic = document.getElementById('bgMusic');
 
-        // 初始化音频
-        this.initAudio();
-
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
         this.setupControls();
@@ -167,24 +164,31 @@ class Snake {
         }
     }
 
-    start() {
+    async start() {
         if (this.gameLoop) return;
-        
+
+        // 初始化音频设置
+        if (!this.audioInitialized) {
+            this.initAudio();
+        }
+
+        // 重置游戏状态
         this.snake = [{x: 5, y: 5}];
         this.direction = 'right';
         this.score = 0;
         document.getElementById('score').textContent = '分数: 0';
         this.food = this.generateFood();
         document.getElementById('startButton').textContent = '游戏中';
-        
+
         // 播放背景音乐
-        if (this.audioInitialized) {
-            this.bgMusic.currentTime = 0;
-            this.bgMusic.play().catch(error => {
-                console.error('播放背景音乐失败:', error);
-            });
+        try {
+            this.bgMusic.currentTime = 0; // 重置播放位置
+            await this.bgMusic.play();
+        } catch (error) {
+            console.error('播放背景音乐失败:', error);
         }
-        
+
+        // 启动游戏循环
         this.gameLoop = setInterval(() => {
             if (!this.isPaused) {
                 this.update();
@@ -240,38 +244,11 @@ class Snake {
     }
 
     initAudio() {
-        // 设置音频音量
         this.bgMusic.volume = 0.5;
         this.moveSound.volume = 0.3;
         this.eatSound.volume = 0.3;
         this.gameOverSound.volume = 0.4;
-
-        // 添加音频加载状态检查
-        this.bgMusic.addEventListener('error', (e) => {
-            console.error('背景音乐加载失败:', e);
-        });
-
-        // 添加用户交互音频初始化
-        const initAudioOnUserInteraction = () => {
-            if (!this.audioInitialized) {
-                // 尝试播放并立即暂停以初始化音频
-                Promise.all([
-                    this.bgMusic.play().then(() => this.bgMusic.pause()),
-                    this.moveSound.play().then(() => this.moveSound.pause()),
-                    this.eatSound.play().then(() => this.eatSound.pause()),
-                    this.gameOverSound.play().then(() => this.gameOverSound.pause())
-                ]).then(() => {
-                    this.audioInitialized = true;
-                }).catch(error => {
-                    console.error('音频初始化失败:', error);
-                });
-            }
-        };
-
-        // 监听用户交互事件
-        ['click', 'touchstart', 'keydown'].forEach(event => {
-            document.addEventListener(event, initAudioOnUserInteraction, { once: true });
-        });
+        this.audioInitialized = true; // 标记为已初始化
     }
 
     togglePause() {
