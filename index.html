@@ -13,60 +13,141 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #1a1a1a;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
             touch-action: none;
             font-family: Arial, sans-serif;
+            color: white;
         }
 
         #gameContainer {
             position: relative;
             width: 100%;
             max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #gameCanvas {
             width: 100%;
-            background-color: #000;
-            border: 2px solid #444;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
             box-sizing: border-box;
+            transition: transform 0.3s ease;
+        }
+
+        #gameCanvas:hover {
+            transform: scale(1.01);
         }
 
         #score {
-            color: white;
-            font-size: 24px;
+            font-size: 28px;
             text-align: center;
-            margin: 10px 0;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            to {
+                text-shadow: 2px 2px 8px rgba(76, 175, 80, 0.6);
+            }
         }
 
         #controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
             margin-top: 20px;
             padding: 0 20px;
+            flex-wrap: wrap;
+        }
+
+        #modeSelect {
+            padding: 12px 28px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        #modeSelect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+        }
+
+        #modeSelect option {
+            background: #2c3e50;
+            color: white;
         }
 
         button {
-            padding: 12px 24px;
+            padding: 12px 28px;
             font-size: 18px;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
             color: white;
             cursor: pointer;
-            background-color: #4CAF50;
-            transition: background-color 0.3s;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
         }
 
         #pauseButton {
-            background-color: #2196F3;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
         }
 
         #pauseButton:hover {
-            background-color: #1976D2;
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        #instructions {
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            max-width: 90%;
+            text-align: center;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #instructions h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -74,11 +155,33 @@
     <div id="gameContainer">
         <div id="score">分数: 0</div>
         <canvas id="gameCanvas"></canvas>
+        <div id="instructions">
+            <h2>游戏说明</h2>
+            <div class="mobile-only">
+                <p>👆 滑动屏幕控制蛇的方向</p>
+                <p>↑ 向上滑动：蛇向上移动</p>
+                <p>↓ 向下滑动：蛇向下移动</p>
+                <p>← 向左滑动：蛇向左移动</p>
+                <p>→ 向右滑动：蛇向右移动</p>
+            </div>
+            <div class="desktop-only">
+                <p>使用键盘方向键控制蛇的移动</p>
+            </div>
+        </div>
         <div id="controls">
+            <select id="modeSelect">
+                <option value="normal">普通模式</option>
+                <option value="hard">困难模式</option>
+                <option value="hell">地狱模式</option>
+            </select>
             <button id="startButton">开始游戏</button>
             <button id="pauseButton">暂停</button>
         </div>
     </div>
+    <audio id="moveSound" src="move.mp3" preload="auto"></audio>
+    <audio id="eatSound" src="eat.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="gameover.mp3" preload="auto"></audio>
+    <audio id="bgMusic" src="background.mp3" preload="auto" loop></audio>
     <script src="snake.js"></script>
 </body>
 </html>

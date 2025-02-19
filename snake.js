@@ -11,10 +11,30 @@ class Snake {
         this.isPaused = false;
         this.touchStartX = 0;
         this.touchStartY = 0;
+        this.audioInitialized = false;
+        this.gameMode = 'normal';
+
+        // 音频元素
+        this.moveSound = document.getElementById('moveSound');
+        this.eatSound = document.getElementById('eatSound');
+        this.gameOverSound = document.getElementById('gameOverSound');
+        this.bgMusic = document.getElementById('bgMusic');
+
+        // 初始化音频
+        this.initAudio();
 
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
         this.setupControls();
+
+        // 监听游戏模式变化
+        document.getElementById('modeSelect').addEventListener('change', (e) => {
+            this.gameMode = e.target.value;
+            if (this.gameLoop) {
+                this.gameOver();
+                this.start();
+            }
+        });
     }
 
     resizeCanvas() {
@@ -87,6 +107,22 @@ class Snake {
         };
     }
 
+    getGameSpeed() {
+        switch(this.gameMode) {
+            case 'hard': return 150;
+            case 'hell': return 100;
+            default: return 200;
+        }
+    }
+
+    getScoreMultiplier() {
+        switch(this.gameMode) {
+            case 'hard': return 1.5;
+            case 'hell': return 2;
+            default: return 1;
+        }
+    }
+
     update() {
         const head = {...this.snake[0]};
 
@@ -95,6 +131,14 @@ class Snake {
             case 'down': head.y++; break;
             case 'left': head.x--; break;
             case 'right': head.x++; break;
+        }
+
+        // 播放移动音效
+        if (this.audioInitialized) {
+            this.moveSound.currentTime = 0;
+            this.moveSound.play().catch(error => {
+                console.error('播放移动音效失败:', error);
+            });
         }
 
         // 检查碰撞
@@ -107,12 +151,46 @@ class Snake {
 
         // 检查是否吃到食物
         if (head.x === this.food.x && head.y === this.food.y) {
-            this.score += 10;
+            const baseScore = 10;
+            this.score += Math.round(baseScore * this.getScoreMultiplier());
             document.getElementById('score').textContent = `分数: ${this.score}`;
             this.food = this.generateFood();
+            // 播放吃到食物的音效
+            if (this.audioInitialized) {
+                this.eatSound.currentTime = 0;
+                this.eatSound.play().catch(error => {
+                    console.error('播放吃食物音效失败:', error);
+                });
+            }
         } else {
             this.snake.pop();
         }
+    }
+
+    start() {
+        if (this.gameLoop) return;
+        
+        this.snake = [{x: 5, y: 5}];
+        this.direction = 'right';
+        this.score = 0;
+        document.getElementById('score').textContent = '分数: 0';
+        this.food = this.generateFood();
+        document.getElementById('startButton').textContent = '游戏中';
+        
+        // 播放背景音乐
+        if (this.audioInitialized) {
+            this.bgMusic.currentTime = 0;
+            this.bgMusic.play().catch(error => {
+                console.error('播放背景音乐失败:', error);
+            });
+        }
+        
+        this.gameLoop = setInterval(() => {
+            if (!this.isPaused) {
+                this.update();
+                this.draw();
+            }
+        }, this.getGameSpeed());
     }
 
     checkCollision(head) {
@@ -152,30 +230,58 @@ class Snake {
     gameOver() {
         clearInterval(this.gameLoop);
         this.gameLoop = null;
+        // 停止背景音乐
+        this.bgMusic.pause();
+        this.bgMusic.currentTime = 0;
+        // 播放游戏结束音效
+        this.gameOverSound.play();
         alert(`游戏结束！得分：${this.score}`);
         document.getElementById('startButton').textContent = '重新开始';
     }
 
-    start() {
-        if (this.gameLoop) return;
-        
-        this.snake = [{x: 5, y: 5}];
-        this.direction = 'right';
-        this.score = 0;
-        document.getElementById('score').textContent = '分数: 0';
-        this.food = this.generateFood();
-        document.getElementById('startButton').textContent = '游戏中';
-        
-        this.gameLoop = setInterval(() => {
-            if (!this.isPaused) {
-                this.update();
-                this.draw();
+    initAudio() {
+        // 设置音频音量
+        this.bgMusic.volume = 0.5;
+        this.moveSound.volume = 0.3;
+        this.eatSound.volume = 0.3;
+        this.gameOverSound.volume = 0.4;
+
+        // 添加音频加载状态检查
+        this.bgMusic.addEventListener('error', (e) => {
+            console.error('背景音乐加载失败:', e);
+        });
+
+        // 添加用户交互音频初始化
+        const initAudioOnUserInteraction = () => {
+            if (!this.audioInitialized) {
+                // 尝试播放并立即暂停以初始化音频
+                Promise.all([
+                    this.bgMusic.play().then(() => this.bgMusic.pause()),
+                    this.moveSound.play().then(() => this.moveSound.pause()),
+                    this.eatSound.play().then(() => this.eatSound.pause()),
+                    this.gameOverSound.play().then(() => this.gameOverSound.pause())
+                ]).then(() => {
+                    this.audioInitialized = true;
+                }).catch(error => {
+                    console.error('音频初始化失败:', error);
+                });
             }
-        }, 150);
+        };
+
+        // 监听用户交互事件
+        ['click', 'touchstart', 'keydown'].forEach(event => {
+            document.addEventListener(event, initAudioOnUserInteraction, { once: true });
+        });
     }
 
     togglePause() {
         this.isPaused = !this.isPaused;
+        // 暂停/继续背景音乐
+        if (this.isPaused) {
+            this.bgMusic.pause();
+        } else {
+            this.bgMusic.play();
+        }
         document.getElementById('pauseButton').textContent = 
             this.isPaused ? '继续' : '暂停';
     }
