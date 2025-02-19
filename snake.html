@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>贪食蛇</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            touch-action: none;
+            font-family: Arial, sans-serif;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            background-color: #000;
+            border: 2px solid #444;
+            box-sizing: border-box;
+        }
+
+        #score {
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            background-color: #4CAF50;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #pauseButton {
+            background-color: #2196F3;
+        }
+
+        #pauseButton:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="score">分数: 0</div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls">
+            <button id="startButton">开始游戏</button>
+            <button id="pauseButton">暂停</button>
+        </div>
+    </div>
+    <script src="snake.js"></script>
+</body>
+</html>
